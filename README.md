@@ -4,7 +4,7 @@ You should create a cart page for online shop, please treat it as a part of a bi
 
 ## Functionality
 
-1. Load cart items on cart page load (use any API mock services or just .json file)
+1. Load cart items with XHR request on cart page load (use any API mock services or just fetch .json file from folder with static)
 2. Each cart item should contain:
     - Name
     - Price
