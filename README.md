@@ -12,6 +12,7 @@ You should create a cart page for online shop, please treat it as a part of a bi
 3. Each cart item should have quantity switcher (+/-)
 4. Cart items should have the ability to be deleted from the list
 5. Your cart page should have a form for adding new cart item, the item should be added to the top of cart items list on form submit
+6. The cart should contain summary block with checkout button and totals for all the cart items
 
 ## UI/UX
 
@@ -19,4 +20,4 @@ Design is totally up to you, the only requirement - don't use ready design syste
 
 ## Tests
 
-We write tests for all our production code, that is why we ask you to cover at least one of modules in your test app with tests.
+We write tests for all our production code, that is why we ask you to cover with tests at least one instance for every module (actions, reducers, components) in your app.
