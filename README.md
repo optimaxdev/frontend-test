@@ -1,4 +1,4 @@
-# Create shopping cart with React & Redux
+# Create shopping cart with React & Redux & Typescript
 
 You should create a cart page for online shop, please treat it as a part of a big application, so it should be well documented and maintainable. Your code should be uploaded on Github and your application should be available through a link (for example deployed to Github Pages).
 
