@@ -1,0 +1,17 @@
+.cart-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  padding: 0;
+  margin: 0;
+}
+
+.cart-list__status {
+  text-align: center;
+  color: #555;
+  padding: 2rem 1rem;
+}
+
+.cart-list__status--error {
+  color: #e53e3e;
+}
