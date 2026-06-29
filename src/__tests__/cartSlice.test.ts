@@ -2,8 +2,8 @@ import { describe, it, expect } from 'vitest';
 import type { CartState } from '../store/cartSlice';
 import cartReducer, {
   addItem,
-  removeItem,
-  updateQuantity,
+  changeCartItemQuantity,
+  deleteCartItem,
   fetchCartItems,
 } from '../store/cartSlice';
 import type { CartItem } from '../types/cart';
@@ -14,18 +14,32 @@ const stateWithItem: CartState = {
   items: [mockItem],
   loading: false,
   error: null,
+  updatingItemIds: [],
+  deletingItemIds: [],
 };
 
 describe('cartSlice reducer', () => {
   it('returns the initial state', () => {
     const state = cartReducer(undefined, { type: '@@INIT' });
-    expect(state).toEqual({ items: [], loading: false, error: null });
+    expect(state).toEqual({
+      items: [],
+      loading: false,
+      error: null,
+      updatingItemIds: [],
+      deletingItemIds: [],
+    });
   });
 
   describe('addItem', () => {
     it('prepends a new item to the list', () => {
       const existing: CartItem = { id: 'x', name: 'Existing', price: 5, quantity: 1 };
-      const start: CartState = { items: [existing], loading: false, error: null };
+      const start: CartState = {
+        items: [existing],
+        loading: false,
+        error: null,
+        updatingItemIds: [],
+        deletingItemIds: [],
+      };
       const state = cartReducer(start, addItem({ name: 'New', price: 20, quantity: 3 }));
       expect(state.items).toHaveLength(2);
       expect(state.items[0].name).toBe('New');
@@ -42,32 +56,53 @@ describe('cartSlice reducer', () => {
     });
   });
 
-  describe('removeItem', () => {
-    it('removes the item with the given id', () => {
-      const state = cartReducer(stateWithItem, removeItem('1'));
-      expect(state.items).toHaveLength(0);
+  describe('changeCartItemQuantity async thunk', () => {
+    it('tracks pending state while quantity is updating', () => {
+      const state = cartReducer(
+        stateWithItem,
+        changeCartItemQuantity.pending('', { id: '1', quantity: 5 })
+      );
+      expect(state.updatingItemIds).toEqual(['1']);
     });
 
-    it('does nothing when the id does not exist', () => {
-      const state = cartReducer(stateWithItem, removeItem('nonexistent'));
-      expect(state.items).toHaveLength(1);
+    it('updates quantity and clears pending state on fulfilled', () => {
+      const start: CartState = { ...stateWithItem, updatingItemIds: ['1'] };
+      const state = cartReducer(
+        start,
+        changeCartItemQuantity.fulfilled({ id: '1', quantity: 5 }, '', {
+          id: '1',
+          quantity: 5,
+        })
+      );
+      expect(state.items[0].quantity).toBe(5);
+      expect(state.updatingItemIds).toEqual([]);
+    });
+
+    it('clears pending state and stores error on rejected', () => {
+      const start: CartState = { ...stateWithItem, updatingItemIds: ['1'] };
+      const state = cartReducer(
+        start,
+        changeCartItemQuantity.rejected(new Error('Network error'), '', {
+          id: '1',
+          quantity: 5,
+        })
+      );
+      expect(state.updatingItemIds).toEqual([]);
+      expect(state.error).toBe('Network error');
     });
   });
 
-  describe('updateQuantity', () => {
-    it('updates the quantity of the specified item', () => {
-      const state = cartReducer(stateWithItem, updateQuantity({ id: '1', quantity: 5 }));
-      expect(state.items[0].quantity).toBe(5);
+  describe('deleteCartItem async thunk', () => {
+    it('tracks pending state while deleting', () => {
+      const state = cartReducer(stateWithItem, deleteCartItem.pending('', '1'));
+      expect(state.deletingItemIds).toEqual(['1']);
     });
 
-    it('clamps quantity to a minimum of 1', () => {
-      const state = cartReducer(stateWithItem, updateQuantity({ id: '1', quantity: 0 }));
-      expect(state.items[0].quantity).toBe(1);
-    });
-
-    it('does nothing when the id does not exist', () => {
-      const state = cartReducer(stateWithItem, updateQuantity({ id: 'missing', quantity: 99 }));
-      expect(state.items[0].quantity).toBe(2);
+    it('removes item and clears pending state on fulfilled', () => {
+      const start: CartState = { ...stateWithItem, deletingItemIds: ['1'] };
+      const state = cartReducer(start, deleteCartItem.fulfilled('1', '', '1'));
+      expect(state.items).toHaveLength(0);
+      expect(state.deletingItemIds).toEqual([]);
     });
   });
 

@@ -10,7 +10,15 @@ import type { CartItem } from '../types/cart';
 const makeStore = (items: CartItem[]) =>
   configureStore({
     reducer: { cart: cartReducer },
-    preloadedState: { cart: { items, loading: false, error: null } },
+    preloadedState: {
+      cart: {
+        items,
+        loading: false,
+        error: null,
+        updatingItemIds: [],
+        deletingItemIds: [],
+      },
+    },
   });
 
 describe('CartSummary component', () => {

@@ -9,7 +9,15 @@ import cartReducer from '../store/cartSlice';
 const makeStore = () =>
   configureStore({
     reducer: { cart: cartReducer },
-    preloadedState: { cart: { items: [], loading: false, error: null } },
+    preloadedState: {
+      cart: {
+        items: [],
+        loading: false,
+        error: null,
+        updatingItemIds: [],
+        deletingItemIds: [],
+      },
+    },
   });
 
 const renderForm = () => {

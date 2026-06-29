@@ -1,7 +1,7 @@
 import React from 'react';
 import type { CartItem as CartItemType } from '../../types/cart';
-import { removeItem, updateQuantity } from '../../store/cartSlice';
-import { useAppDispatch } from '../../store/hooks';
+import { changeCartItemQuantity, deleteCartItem } from '../../store/cartSlice';
+import { useAppDispatch, useAppSelector } from '../../store/hooks';
 import './CartItem.css';
 
 interface CartItemProps {
@@ -14,19 +14,26 @@ interface CartItemProps {
  */
 const CartItem: React.FC<CartItemProps> = ({ item }) => {
   const dispatch = useAppDispatch();
+  const isUpdating = useAppSelector((state) =>
+    state.cart.updatingItemIds.includes(item.id)
+  );
+  const isDeleting = useAppSelector((state) =>
+    state.cart.deletingItemIds.includes(item.id)
+  );
+  const isBusy = isUpdating || isDeleting;
 
   const handleDecrement = () => {
     if (item.quantity > 1) {
-      dispatch(updateQuantity({ id: item.id, quantity: item.quantity - 1 }));
+      dispatch(changeCartItemQuantity({ id: item.id, quantity: item.quantity - 1 }));
     }
   };
 
   const handleIncrement = () => {
-    dispatch(updateQuantity({ id: item.id, quantity: item.quantity + 1 }));
+    dispatch(changeCartItemQuantity({ id: item.id, quantity: item.quantity + 1 }));
   };
 
   const handleRemove = () => {
-    dispatch(removeItem(item.id));
+    dispatch(deleteCartItem(item.id));
   };
 
   const subtotal = (item.price * item.quantity).toFixed(2);
@@ -43,7 +50,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           <button
             className="cart-item__qty-btn"
             onClick={handleDecrement}
-            disabled={item.quantity <= 1}
+            disabled={item.quantity <= 1 || isBusy}
             aria-label={`Decrease quantity of ${item.name}`}
           >
             −
@@ -54,6 +61,7 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
           <button
             className="cart-item__qty-btn"
             onClick={handleIncrement}
+            disabled={isBusy}
             aria-label={`Increase quantity of ${item.name}`}
           >
             +
@@ -67,11 +75,18 @@ const CartItem: React.FC<CartItemProps> = ({ item }) => {
         <button
           className="cart-item__remove"
           onClick={handleRemove}
+          disabled={isBusy}
           aria-label={`Remove ${item.name} from cart`}
         >
-          Remove
+          {isDeleting ? 'Removing...' : 'Remove'}
         </button>
       </div>
+
+      {isUpdating && (
+        <p className="cart-item__status" role="status" aria-live="polite">
+          Saving quantity...
+        </p>
+      )}
     </li>
   );
 };
